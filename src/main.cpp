@@ -6,9 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int WORK_TIME = 1;
+const int INITIAL_CYCLE = 1;
+const int WORK_TIME = 2;
 const int BREAK_TIME = 1;
-const int LONG_BREAK_TIME = 2;
+const int LONG_BREAK_TIME = 5;
 
 const int BREAK_AFTER_CYCLES = 5;
 const int LONG_BREAK_AFTER_CYCLES = 900;
@@ -20,6 +21,7 @@ const int cseconds_in_day = 86400;
 const int cseconds_in_hour = 3600;
 const int cseconds_in_minute = 60;
 const int cseconds = 1;
+int total = 0;
 
 using namespace std;
 
@@ -48,7 +50,7 @@ time_t GetCurrentTime()
   return mktime(localtime(&endtime));
 }
 
-void Countdown(time_t targetTime)
+int Countdown(time_t targetTime)
 {
   time_t currentTime = GetCurrentTime();
   long diffTime = difftime(targetTime, currentTime);
@@ -59,44 +61,45 @@ void Countdown(time_t targetTime)
   int seconds = (((input_seconds % cseconds_in_day) % cseconds_in_hour) % cseconds_in_minute) / cseconds;
 
   clear();
-  printf("%02d:%02d:%02d\n", hours, minutes, seconds);
+  printf("%02d:%02d:%02d --%2d -- %d\n", hours, minutes, seconds, total, diffTime);
+  return diffTime;
 }
 
 void StartCycle(int duration, int cycle)
 {
   while (true)
   {
-    Countdown(GetTargetTime(duration));
+    if (Countdown(GetTargetTime(duration)) == 1)
+      break;
     sleep(1);
   }
 }
 
 void StartWork()
 {
-  int cycle = 0;
-  int cycleDuration = WORK_TIME;
-  int cyclecycleDurationInSeconds;
-
-  if (cycle == TOTAL_COUNT)
-  {
-    cycle = 0;
-    cycleDuration = LONG_BREAK_TIME;
-  }
-  else
-  {
-    if (cycle % 2 == 0)
-      cycleDuration = WORK_TIME;
-    else
-      cycleDuration = BREAK_TIME;
-  }
-
-  cyclecycleDurationInSeconds = cycleDuration * cseconds_in_minute;
-
   while (true)
   {
+    int cycle = INITIAL_CYCLE;
+    int cycleDuration = WORK_TIME;
+
+    if (cycle == TOTAL_COUNT)
+    {
+      cycle = INITIAL_CYCLE;
+      cycleDuration = LONG_BREAK_TIME;
+    }
+    else if (cycle % 2 == 1)
+    {
+      cycleDuration = BREAK_TIME;
+    }
+    else
+    {
+      cycleDuration = WORK_TIME;
+    }
+
     StartCycle(cycleDuration, cycle);
+    total++;
     cycle++;
-    sleep(cyclecycleDurationInSeconds);
+    sleep(1);
   }
 }
 
